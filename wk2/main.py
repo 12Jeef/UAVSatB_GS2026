@@ -14,3 +14,12 @@ cv2.imwrite(os.path.join(dirpath, "img_zerog.png"), img_zerog)
 
 img_stretch = cv2.resize(img, (int(img.shape[1] * 2), int(img.shape[0] * 1)))
 cv2.imwrite(os.path.join(dirpath, "img_stretch.png"), img_stretch)
+
+img_shuffle = img.copy()
+img_r = img_shuffle[:, :, 2].copy()
+img_g = img_shuffle[:, :, 1].copy()
+img_b = img_shuffle[:, :, 0].copy()
+img_shuffle[:, :, 0] = img_r
+img_shuffle[:, :, 2] = img_b
+img_shuffle[:, :, 1] = img_g
+cv2.imwrite(os.path.join(dirpath, "img_shuffle.png"), img_shuffle)

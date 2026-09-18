@@ -16,9 +16,15 @@ class Matches:
     self.matches = matches
 
 class Mapper:
-  def __init__(self, n_feats=2000):
+  def __init__(self, *, n_feats=2000, lowe_ratio=0.75, min_n_feats=5, min_score=0.75, min_scale=0.25, max_scale=1.75):
     self.orb = cv2.ORB.create(nfeatures=n_feats)
     self.matcher = cv2.BFMatcher(cv2.NORM_HAMMING)
+
+    self.lowe_ratio = lowe_ratio
+    self.min_n_feats = min_n_feats
+    self.min_score = min_score
+    self.min_scale = min_scale
+    self.max_scale = max_scale
 
   def detect(self, img: Image) -> Image:
     img.kp, img.des = self.orb.detectAndCompute(img.mat, None)
@@ -40,12 +46,12 @@ class Mapper:
     all_matches = self.matcher.knnMatch(img_a.des, img_b.des, k=2)
     good_matches: list[Match] = []
     for m, n in all_matches:
-      if m.distance < 0.75 * n.distance:
+      if m.distance < self.lowe_ratio * n.distance:
         good_matches.append(Match(img_a.kp[m.queryIdx], img_b.kp[m.trainIdx], m))
     return Matches(img_a, img_b, good_matches)
 
   def transform_b_onto_a(self, matches: Matches) -> tuple[cv2.typing.MatLike, float] | None:
-    if len(matches.matches) < 5:
+    if len(matches.matches) < self.min_n_feats:
       return None
     M, mask = cv2.estimateAffinePartial2D(
       np.array([m.kp_a.pt for m in matches.matches]),
@@ -54,12 +60,15 @@ class Mapper:
       ransacReprojThreshold=5) # a onto b
     if M is None:
       return None
+    score = int(mask.sum()) / len(matches.matches)
+    if score < self.min_score:
+      return None
     scale = np.sqrt(M[0, 0]**2 + M[1, 0]**2)
-    if scale < 0.25 or scale > 1.75:
+    if scale < self.min_scale or scale > self.max_scale:
       return None
     M_inv = cv2.invertAffineTransform(M) # b onto a
     T = np.vstack([M_inv, [0, 0, 1]])
-    return T, int(mask.sum()) / len(matches.matches)
+    return T, score
 
   def apply_b_onto_a(self, img_a: Image, img_b: Image, *, T_cache: cv2.typing.MatLike | None = None) -> Image | None:
     if T_cache is None:
@@ -144,7 +153,7 @@ class Map:
       return True
     latest = reversed(self.images[:5])
     latest_scored = [(img_src, self.mapper.transform_b_onto_a(self.mapper.match(img_src, img))) for img_src in latest]
-    latest_scored = [(img_src, results) for img_src, results in latest_scored if results is not None and results[1] > 0.75]
+    latest_scored = [(img_src, results) for img_src, results in latest_scored if results is not None]
     if len(latest_scored) <= 0:
       return False
     latest_scored.sort(key=lambda item: item[1][1], reverse=True) # (img, (T, score)) -> greatest score

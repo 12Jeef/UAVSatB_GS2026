@@ -1,28 +1,60 @@
 import numpy as np
 import cv2
-import typing
+
+class Feature:
+  def __init__(self, img, des: list[int], pos: tuple[float, float]):
+    self.img: Image = img
+
+    self.des = des
+    self.pos = pos
+
+    self._world_pop = False
+    self.world_pos: tuple[float, float] | None = None
+
+  def depopulate_world(self):
+    self._world_pop = False
+    self.world_pos = None
+
+  def populate_world(self):
+    if self._world_pop:
+      return
+    self._world_pop = True
+
+    pos = np.array([*self.pos, 1]).reshape((3, 1))
+    world_pos = self.img.T @ pos
+
+    self.world_pos = (float(world_pos[0, 0]), float(world_pos[1, 0]))
 
 class Image:
   def __init__(self, mat: cv2.typing.MatLike):
     self.mat = mat
     self.size = (int(mat.shape[1]), int(mat.shape[0]))
 
-    self.kp: typing.Sequence[cv2.KeyPoint] | None = None
-    self.des: cv2.typing.MatLike | None = None
+    self.feats: list[Feature] | None = None
 
-    self.T = np.identity(3) # image -> world
+    self.T: cv2.typing.MatLike = np.identity(3) # image -> world
+
     self._world_pop = False
     self.world_mat: cv2.typing.MatLike | None = None
+    self.world_mat_mask: cv2.typing.MatLike | None = None
     self.world_corner: tuple[int, int] | None = None
     self.world_size: tuple[int, int] | None = None
 
   def depopulate_world(self):
     self._world_pop = False
+    if self.feats is not None:
+      for feat in self.feats:
+        feat.depopulate_world()
     self.world_mat = None
+    self.world_mat_mask = None
     self.world_corner = None
     self.world_size = None
 
   def populate_world(self):
+    if self.feats is not None:
+      for feat in self.feats:
+        feat.populate_world()
+
     if self._world_pop:
       return
     self._world_pop = True
@@ -49,7 +81,21 @@ class Image:
     M[1, 2] -= min_y
     # world to image
     M_inv = cv2.invertAffineTransform(M)
-    self.world_mat = cv2.resize(self.mat, self.world_size) # cv2.warpAffine(self.mat, M_inv, self.world_size)
+    self.world_mat = cv2.warpAffine(
+      self.mat,
+      M_inv,
+      self.world_size,
+      flags=cv2.INTER_LINEAR,
+      borderMode=cv2.BORDER_CONSTANT,
+      borderValue=(0, 0, 0))
+    mask = np.full((self.size[1], self.size[0]), 255, dtype=np.uint8)
+    self.world_mat_mask = cv2.warpAffine(
+      mask,
+      M_inv,
+      self.world_size,
+      flags=cv2.INTER_LINEAR,
+      borderMode=cv2.BORDER_CONSTANT,
+      borderValue=0)
 
 
-__all__ = ["Image"]
+__all__ = ["Feature", "Image"]

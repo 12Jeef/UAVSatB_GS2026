@@ -1,4 +1,5 @@
 import os
+import time
 import cv2
 import jigsaw
 
@@ -23,7 +24,8 @@ def split_video(input_file: str, output_dir: str, period: float):
   cap.release()
 
 if True:
-  IMAGES_PATH = os.path.join(dirpath, "tmp", "mapping_test", "old test images", "1")
+  # IMAGES_PATH = os.path.join(dirpath, "tmp", "mapping_test", "old test images", "1")
+  IMAGES_PATH = os.path.join(dirpath, "tmp", "mapping_test", "old test images", "2")
 else:
   IMAGES_PATH = os.path.join(dirpath, "tmp", "Minecraft_stitch_test")
   # split_video(
@@ -52,7 +54,10 @@ while len(IMAGES) > 0:
     continue
   img = jigsaw.Image(img_mat)
   print(f"map and add {name}...")
+  t0 = time.time()
   success = map.align_and_add_image(img)
+  t1 = time.time()
+  print(f"> duration={(t1-t0) * 1000:.04}ms")
   if not success:
     print("> failed to map")
     IMAGES.append(path)

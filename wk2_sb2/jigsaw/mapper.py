@@ -3,7 +3,7 @@ import numpy as np
 import cv2
 from .image import Feature, Image
 
-verbose = True
+verbose = False
 
 def set_verbose(vb):
   global verbose
@@ -167,7 +167,7 @@ class Map:
     mask = img.world_mat_mask[src_min_y:src_max_y, src_min_x:src_max_x]
     dst = chunk[dst_min_y:dst_max_y, dst_min_x:dst_max_x]
     i = mask >= 128
-    dst[i] = dst[i] / 2 + src[i] / 2
+    dst[i] = src[i] # dst[i] / 2 + src[i] / 2
 
   def add_image(self, img: Image):
     img.populate_world()
@@ -189,17 +189,24 @@ class Map:
       log(f"Map: align_and_add_image: no images, add straight")
       self.add_image(img)
       return True
-    latest = reversed(self.images[:5])
-    matchess = [self.mapper.match(img_base, img) for img_base in latest]
-    results = self.mapper.align(matchess)
-    if results is None:
-      log(f"Map: align_and_add_image: ! failed")
-      return False
-    T, _ = results
-    img.T = T
-    img.depopulate_world()
-    self.add_image(img)
-    return True
+    matchess = []
+    while True:
+      if len(matchess) >= len(self.images):
+        log(f"Map: align_and_add_image: ! failed, out of data")
+        return False
+      n_used = len(matchess)
+      i = len(self.images) - n_used
+      imgs = self.images[max(0, i-2):i]
+      matchess.extend([self.mapper.match(img_base, img) for img_base in imgs])
+      results = self.mapper.align(matchess)
+      if results is None:
+        log(f"Map: align_and_add_image: ! failed, retry")
+        continue
+      T, _ = results
+      img.T = T
+      img.depopulate_world()
+      self.add_image(img)
+      return True
 
   def combine(self) -> cv2.typing.MatLike:
     chunk_poss = list(self.chunks.keys())

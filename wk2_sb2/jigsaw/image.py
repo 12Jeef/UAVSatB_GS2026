@@ -81,8 +81,16 @@ class Image:
     M[1, 2] -= min_y
     # world to image
     M_inv = cv2.invertAffineTransform(M)
+    mat = self.mat.copy()
+    if self.feats is not None:
+      for feat in self.feats:
+        min_x = int(feat.pos[0] - 5)
+        min_y = int(feat.pos[1] - 5)
+        max_x = int(feat.pos[0] + 5)
+        max_y = int(feat.pos[1] + 5)
+        mat[min_y:max_y, min_x:max_x, :] = (0, 0, 255)
     self.world_mat = cv2.warpAffine(
-      self.mat,
+      mat,
       M_inv,
       self.world_size,
       flags=cv2.INTER_LINEAR,

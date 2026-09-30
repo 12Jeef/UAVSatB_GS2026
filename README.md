@@ -2,7 +2,7 @@
 
 Welcome to my humble abode.
 
-- Week 3 Skill Booster 2: YOLO OD
+- [Week 4](./wk4/README.md)
 - Week 3 Skill Booster 1: Blob Detection
 - Week 3
 - [Week 2 Skill Booster 2: I’ll be Needin’ Stitches](./wk2_sb2/README.md)

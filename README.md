@@ -2,9 +2,9 @@
 
 Welcome to my humble abode.
 
-- [Week 4](./wk4/README.md)
-- [Week 3 Skill Booster 1: Blob Detection](./wk3_sb1/README.md)
-- Week 3
-- [Week 2 Skill Booster 2: I’ll be Needin’ Stitches](./wk2_sb2/README.md)
-- [Week 2 Skill Booster 1: Color Me Impressed](./wk2_sb1/README.md)
-- Week 2
+- [WK4](./wk4/README.md)
+- [WK3 SB1: Blob Detection](./wk3_sb1/README.md)
+- WK3
+- [WK2 SB2: I’ll be Needin’ Stitches](./wk2_sb2/README.md)
+- [WK2 SB1: Color Me Impressed](./wk2_sb1/README.md)
+- WK2

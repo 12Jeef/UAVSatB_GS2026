@@ -2,6 +2,7 @@
 
 Welcome to my humble abode.
 
+- [WK5](./wk5/README.md)
 - [WK4 SB1: Drone Planning](./wk4_sb1/diagram.png)
 - [WK4](./wk4/README.md)
 - [WK3 SB1: Blob Detection](./wk3_sb1/README.md)

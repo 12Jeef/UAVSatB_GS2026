@@ -1,0 +1,16 @@
+[workspace]
+authors = ["jeffrey <jeffrey.fanjf@gmail.com>"]
+channels = ["https://prefix.dev/robostack-jazzy"]
+name = "ros2_ws"
+platforms = ["osx-arm64"]
+version = "0.1.0"
+
+[tasks]
+
+[dependencies]
+ros-jazzy-desktop = ">=0.11.0,<0.12"
+colcon-common-extensions = ">=0.3.0,<0.4"
+ros-dev-tools = ">=1.0.3,<2"
+
+[target.unix.activation]
+scripts = ["install/setup.bash"]
